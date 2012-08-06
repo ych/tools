@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'inifile'
+
+ini = IniFile.new(ARGV[0])
+
+if ARGV[2] != nil
+	user = [ARGV[2]] if ini[ARGV[1]][ARGV[2]] != nil
+else
+	user = ini[ARGV[1]].keys
+end
+
+exit if user == nil
+
+user.each do |id|
+
+	period = ini[ARGV[1]][id].split(/[;]/)
+
+	if 1 == period.length
+		is_start_date_existed = false;
+		date = period[0].split(/[-]/)
+		end_date = Time.local(date[0], date[1], date[2])
+	else
+		date = period[0].split(/[-]/)
+		if 3 == date.length
+			start_date = Time.local(date[0], date[1], date[2])
+			is_start_date_existed = true;
+		else
+			is_start_date_existed = false;
+		end
+
+		date = period[1].split(/[-]/)
+		end_date = Time.local(date[0], date[1], date[2])
+	end
+
+	still = end_date - Time.now
+
+	print "#{id}: " if ARGV[2] == nil
+	print "%d days" % [still.div(24*60*60)+1]
+
+	if true == is_start_date_existed
+		total = end_date - start_date
+		print " %.2f%%" % [still.fdiv(total.div(100))]
+	end
+
+	puts ""
+end
