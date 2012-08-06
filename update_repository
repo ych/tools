@@ -1,0 +1,66 @@
+#!/usr/bin/perl
+
+use Cwd;
+use Cwd 'abs_path';
+
+$oridir = abs_path(getcwd());
+
+if(defined $ARGV[0]){
+	if(-d $ARGV[0]){
+
+		chdir $ARGV[0];
+
+		if(-d ".git"){
+			if(-d ".git/svn"){
+				system("git svn fetch");
+			}
+			else{
+				system("git pull");
+			}
+		}
+		elsif(-d ".svn"){
+			system("svn up");
+		}
+		elsif(-d ".bzr"){
+			system("bzr pull");
+		}
+		elsif(-d ".hg"){
+			system("hg pull");
+		}
+	}
+	else{
+		exit;
+	}
+}
+else{
+	for $dir (<*>){
+		if (-d $dir){
+
+			chdir $dir;
+
+			if(-d ".git"){
+				printf "Project: ".$dir."\n";
+				if(-d ".git/svn"){
+					system("git svn fetch");
+				}
+				else{
+					system("git pull");
+				}
+			}
+			elsif(-d ".svn"){
+				printf "Project: ".$dir."\n";
+				system("svn up");
+			}
+			elsif(-d ".bzr"){
+				printf "Project: ".$dir."\n";
+				system("bzr pull");
+			}
+			elsif(-d ".hg"){
+				printf "Project: ".$dir."\n";
+				system("hg pull");
+			}
+
+			chdir $oridir;
+		}
+	}
+}
