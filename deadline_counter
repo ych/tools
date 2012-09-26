@@ -1,28 +1,45 @@
 #!/usr/bin/env ruby
 
+require 'optparse'
 require 'rubygems'
 require 'inifile'
 
-ini = IniFile.new(ARGV[0])
+ini =
+section =
+users = []
 
-if ARGV[2] != nil
-	user = [ARGV[2]] if ini[ARGV[1]][ARGV[2]] != nil
-else
-	user = ini[ARGV[1]].keys
+OptionParser.new do |opts|
+	opts.on("-u", "--user user1[,user2]..", Array, "User list") do |list|
+		users = list
+	end
+	opts.on("-f", "--file config", "Ini file") do |file|
+		ini = IniFile.new( :filename => file)
+	end
+	opts.on("-s", "--section domain", "Section") do |sect|
+		section = sect
+	end
+	opts.on_tail("-h", "--help", "Show help message") do
+		puts opts
+		exit
+	end
+end.parse!
+
+if 0 == users.length
+	users = ini[section].keys
 end
 
-exit if user == nil
+users.delete_if {|user| false == ini[section].has_key?(user) && nil == (puts "The user #{user} is invaild!") } 
 
-user.each do |id|
+users.each do |user|
 
-	period = ini[ARGV[1]][id].split(/[;]/)
+	period = ini[section][user].split(/[-]/)
 
 	if 1 == period.length
 		is_start_date_existed = false;
-		date = period[0].split(/[-]/)
+		date = period[0].split(/[\/]/)
 		end_date = Time.local(date[0], date[1], date[2])
 	else
-		date = period[0].split(/[-]/)
+		date = period[0].split(/[\/]/)
 		if 3 == date.length
 			start_date = Time.local(date[0], date[1], date[2])
 			is_start_date_existed = true;
@@ -30,13 +47,13 @@ user.each do |id|
 			is_start_date_existed = false;
 		end
 
-		date = period[1].split(/[-]/)
+		date = period[1].split(/[\/]/)
 		end_date = Time.local(date[0], date[1], date[2])
 	end
 
 	still = end_date - Time.now
 
-	print "#{id}: " if ARGV[2] == nil
+	print "#{user}: " if 1 != users.length
 	print "%d days" % [still.div(24*60*60)+1]
 
 	if true == is_start_date_existed
