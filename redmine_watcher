@@ -28,7 +28,7 @@ Options:
 DOCOPT
 
 begin
-  opt = Docopt::docopt(doc, version: '0.0.1')
+  opt = Docopt::docopt(doc, version: '0.0.2')
 rescue Docopt::Exit => e
   puts e.message
 end
@@ -45,24 +45,19 @@ if opt != nil
 
   if opt["site"] == true
     ini["user"]["site"] = opt["<site_url>"]
-    ini.write
   elsif opt["key"] == true
     ini["user"]["key"] = opt["<atom_key_token>"]
-    ini.write
   elsif opt["email"] == true
     ini["user"]["email"] = opt["<email_address>"]
-    ini.write
   elsif opt["watch"] == true
     ini["issues"][opt["<issue_number>"]] = ""
-    ini.write
   elsif opt["unwatch"] == true
     ini["issues"].delete(opt["<issue_number>"])
-    ini.write
   elsif opt["list"] == true
     print "The following issues are watched: #{ini["issues"].keys}\n"
   elsif opt["fetch"] == true
-    if ini["user"]["site"] == nil || ini["user"]["key"] == nil
-      print "You should set up site and key!\n"
+    if ini["user"]["site"] == nil || ini["user"]["key"] == nil || ini["user"]["email"] == nil
+      print "You should set up redmine site, key and your email!\n"
       exit
     end
     ini["issues"].keys.each do |issue|
@@ -72,23 +67,16 @@ if opt != nil
       res = Net::HTTP.get_response(uri)
       if res.is_a?(Net::HTTPSuccess)
 	xmldoc = REXML::Document.new(res.body)
+	# if no entry, updated will be changed all the time.
 	if xmldoc.root.elements['entry'] != nil && xmldoc.root.elements['updated'].to_s != ini["issues"][issue]
-	  #print "Issue #{issue} has new response!\n"
 	  message = sprintf("From: Redmine Watcher <no-reply@exmaple.com>\nTo: User<%s>\nSubject: Issue %s has new response!\n\nPlease connect %s/issues/%s to read new response!", ini["user"]["email"], issue, ini["user"]["site"], issue)
 	  Net::SMTP.start('localhost') do |smtp|
 	    smtp.send_message message, "no-reply@example.com", ini["user"]["email"]
 	  end
 	  ini["issues"][issue] = xmldoc.root.elements['updated'].to_s
-	  ini.write
         end
-        #md5 = OpenSSL::Digest::MD5.new
-        #md5 << res.body
-	#if md5 != ini["issues"][issue]
-	#  print "Issue #{issue} has new response!\n"
-	#  ini["issues"][issue] = md5
-	#  ini.write
-	#end
       end
     end
   end
+  ini.write
 end
