@@ -67,13 +67,16 @@ if opt != nil
       res = Net::HTTP.get_response(uri)
       if res.is_a?(Net::HTTPSuccess)
 	xmldoc = REXML::Document.new(res.body)
-	# if no entry, updated will be changed all the time.
-	if xmldoc.root.elements['entry'] != nil && xmldoc.root.elements['updated'].to_s != ini["issues"][issue]
+  	lastupdated = ""
+	# Save last "updated" record.
+	xmldoc.root.elements.each("entry/updated") { |element| lastupdated = element.to_s }
+	# If no entry, updated will be changed all the time.
+	if xmldoc.root.elements['entry'] != nil && lastupdated != ini["issues"][issue]
 	  message = sprintf("From: Redmine Watcher <no-reply@exmaple.com>\nTo: User<%s>\nSubject: Issue %s has new response!\n\nPlease connect %s/issues/%s to read new response!", ini["user"]["email"], issue, ini["user"]["site"], issue)
 	  Net::SMTP.start('localhost') do |smtp|
 	    smtp.send_message message, "no-reply@example.com", ini["user"]["email"]
 	  end
-	  ini["issues"][issue] = xmldoc.root.elements['updated'].to_s
+	  ini["issues"][issue] = lastupdated
         end
       end
     end
