@@ -1,0 +1,22 @@
+#!/usr/bin/perl
+
+use File::Basename;
+use Cwd;
+
+$basename=basename($0);
+$dir=getcwd;
+
+unless( -e "$ENV{'HOME'}/bin" ){
+	system("mkdir ~/bin")
+}
+
+while(<*>){
+	if($_ ne $basename && -x $_){
+		if (-e "$ENV{'HOME'}/bin/$_"){
+			system("rm -i ~/bin/$_")
+		}
+		if (!-e "$ENV{'HOME'}/bin/$_"){
+			system("ln -s $dir/$_ ~/bin")
+		}
+	}
+}

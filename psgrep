@@ -1,0 +1,13 @@
+#!/usr/bin/perl
+################################################################################
+# A script to grep the infomation of processes
+################################################################################
+
+use 5.010;
+
+if ($#ARGV != 0){
+        say "Usage: $0 program";
+        exit;
+}
+
+system("ps auxww | grep -v 'grep --color $ARGV[0]' | egrep -v '$ENV{USER}\\s+$$' | grep --color $ARGV[0]");
