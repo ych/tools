@@ -4,7 +4,7 @@ require 'optparse'
 require 'rubygems'
 require 'inifile'
 
-ini =
+ini = nil
 section =
 users = []
 
@@ -24,8 +24,24 @@ OptionParser.new do |opts|
 	end
 end.parse!
 
+if nil == ini
+	$stderr.puts "No ini file"
+	exit
+end
+
+if 1 == users.length
+	print_userid = false;
+else
+	print_userid = true;
+end
+
 if 0 == users.length
-	users = ini[section].keys
+	if 0 == ini[section].keys.length
+		$stderr.puts "No avail data"
+		exit
+	else
+		users = ini[section].keys
+	end
 end
 
 users.delete_if {|user| false == ini[section].has_key?(user) && nil == (puts "The user #{user} is invaild!") } 
@@ -53,7 +69,7 @@ users.each do |user|
 
 	still = end_date - Time.now
 
-	print "#{user}: " if 1 != users.length
+	print "#{user}: " if true == print_userid
 	print "%d days" % [still.div(24*60*60)+1]
 
 	if true == is_start_date_existed
