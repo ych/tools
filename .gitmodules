@@ -1,0 +1,3 @@
+[submodule "uxy"]
+	path = uxy
+	url = https://github.com/sustrik/uxy.git
